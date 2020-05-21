@@ -1,0 +1,13 @@
+TRACE START [2020-05-19 20:52:34]
+    0.0019     412784  +412784   -> {main}() /media/highload.gb/xdebug.php:0
+    0.0021     412784       +0     -> error_reporting(32767) /media/highload.gb/xdebug.php:3
+    0.0023     413192              >=> 22527
+    0.0024     413192     +408     -> ini_set('display_errors', 1) /media/highload.gb/xdebug.php:4
+    0.0026     413192              >=> ''
+    0.0028     413304      +56     -> UserTable->__construct($user = class User { public $data = array (0 => array (...), 1 => array (...), 2 => array (...), 3 => array (...), 4 => array (...), 5 => array (...), 6 => array (...), 7 => array (...), 8 => array (...), 9 => array (...)) }) /media/highload.gb/xdebug.php:63
+    0.0039     413680     +376     -> UserTable->renderTable() /media/highload.gb/xdebug.php:64
+    0.0041     413680       +0       -> User->getData() /media/highload.gb/xdebug.php:47
+    0.0043     413680                >=> array (0 => array ('name' => 'Wiley', 'surname' => 'Bartell', 'phone' => '1-887-514-5579'), 1 => array ('name' => 'Jessy', 'surname' => 'Cremin', 'phone' => '+98(3)8077948342'), 2 => array ('name' => 'Erin', 'surname' => 'Cummings', 'phone' => '488-988-6854'), 3 => array ('name' => 'Garrett', 'surname' => 'Conroy', 'phone' => '+04(5)8143153582'), 4 => array ('name' => 'Arno', 'surname' => 'Barrows', 'phone' => '+60(6)7643641070'), 5 => array ('name' => 'Adolfo', 'surname' => 'Bogisich', 'phone' => '(387)862-8671'), 6 => array ('name' => 'Steve', 'surname' => 'Rutherford', 'phone' => '(337)136-7092'), 7 => array ('name' => 'Quentin', 'surname' => 'Donnelly', 'phone' => '209-264-2821'), 8 => array ('name' => 'Jabari', 'surname' => 'Bechtelar', 'phone' => '+86(2)2229281935'), 9 => array ('name' => 'Eriberto', 'surname' => 'Schaefer', 'phone' => '(121)421-1355'))
+    0.0052     331928
+TRACE END   [2020-05-19 20:52:34]
+
