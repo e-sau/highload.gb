@@ -12,7 +12,7 @@ class DB
 
     private function __construct()
     {
-        $config = require('../config/db.php');
+        $config = require(__DIR__ . '/../config/db.php');
         $dsn = "mysql:host={$config['host']};port={$config['port']};dbname={$config['db']}";
         $this->server = new PDO($dsn, $config['user'], $config['password']);
     }

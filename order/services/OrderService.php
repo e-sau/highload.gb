@@ -5,30 +5,30 @@ namespace App\services;
 
 use App\models\Order;
 
-require_once('../../vendor/autoload.php');
-$config = require('../config/config.php');
+require_once (__DIR__ . '/../../vendor/autoload.php');
+$config = require(__DIR__ . '/../config/config.php');
 
 class OrderService extends BaseService
 {
-    private $exchange = 'order';
-    private $binding_key = 'new_order';
-    private $config;
-
-    public function __construct($config)
-    {
-        $this->config = $config;
-    }
+    protected $exchange = 'order';
+    protected $binding_key = 'new_order';
+    protected $config;
 
     protected function getCallback()
     {
         return function ($msg) {
             if (!empty($msg)) {
-                echo ' [x] ', $msg->delivery_info['routing_key'], "\n";
+                file_put_contents(
+                    'php://stdout',
+                    ' [x] ' . $msg->delivery_info['routing_key'] . "\n"
+                );
+
                 $data = json_decode($msg->body, true);
                 $order_id = $this->createOrder($data);
 
                 if ($order_id) {
-                    echo json_encode(["order_id" => $order_id]);
+                    $data['order_id'] = $order_id;
+                    $this->createNewOrderEvent($data);
                 }
             }
         };
@@ -39,14 +39,15 @@ class OrderService extends BaseService
         $order = new Order();
 
         $user_id = (int) $data['user_id'];
-        $data = [
-            $data['sandwich'],
-            $data['additions']
-        ];
-        $address = htmlspecialchars($data['address']);
+
+        $orderParams = [];
+        if (!empty($data['sandwich'])) $orderParams['sandwich'] = $data['sandwich'];
+        if (!empty($data['additions'])) $orderParams['additions'] = $data['additions'];
+
+        $address = (!empty($data['address'])) ? htmlspecialchars($data['address']) : '';
 
         $order->setUserId($user_id);
-        $order->setData($data);
+        $order->setData($orderParams);
         $order->setAddress($address);
 
         $order_id = $order->create();
@@ -65,3 +66,6 @@ class OrderService extends BaseService
         $rabbitMQService->sendMessage($this->exchange, $routing_key, $data);
     }
 }
+
+$orderService = new OrderService($config);
+$orderService->run();

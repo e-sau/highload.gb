@@ -3,7 +3,7 @@
 
 namespace App\services;
 
-require_once ('../../vendor/autoload.php');
+require_once (__DIR__ . '/../../vendor/autoload.php');
 
 use PhpAmqpLib\Connection\AMQPStreamConnection;
 use PhpAmqpLib\Message\AMQPMessage;
@@ -35,13 +35,12 @@ class RabbitMQService
         $msg = new AMQPMessage($data);
 
         $this->channel->basic_publish($msg, $exchange, $routing_key);
-        echo ' [x] Sent ', $routing_key, ":", json_encode($data, JSON_UNESCAPED_UNICODE), "\n";
-        $this->close();
-    }
+        file_put_contents(
+            'php://stdout',
+            ' [x] Sent ' . $routing_key . ":" . json_encode($data, JSON_UNESCAPED_UNICODE) . "\n"
+        );
 
-    public function getChannel()
-    {
-        return $this->channel;
+        $this->close();
     }
 
     public function declareExchangeTopic($exchange)
@@ -51,9 +50,14 @@ class RabbitMQService
             $exchange,
             'topic',
             false,
-            false,
+            true,
             false
         );
+    }
+
+    public function getChannel()
+    {
+        return $this->channel;
     }
 
     public function close()

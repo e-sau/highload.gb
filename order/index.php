@@ -1,9 +1,5 @@
 <?php
 
-echo "<pre>";
-//print_r($_POST);
-echo "</pre>";
-
 $sandwiches = [
     "hamburger" => "Гамбургер",
     "cheeseburger" => "Чизбургер",
@@ -90,6 +86,29 @@ $additions = [
         letter-spacing: 1em;
         border-bottom: 1px solid darkslateblue;
     }
+
+    .overlay {
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        background: rgba(0,0,0,.3);
+        z-index: 999;
+    }
+
+    .modal-text {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 320px;
+        padding: 20px 30px;
+        background: #fff;
+        text-align: center;
+        font-size: 18px;
+        transform: translate(-50%, -50%);
+        z-index: 1000;
+    }
 </style>
 
 <script>
@@ -97,6 +116,8 @@ $additions = [
     form.addEventListener('submit', e => {
         e.preventDefault();
         let formData = new FormData(form);
+        const hash = simpleHash(formData.get('name') + formData.get('phone') + new Date().getTime());
+        formData.append('hash', hash);
         let xhr = new XMLHttpRequest();
         xhr.open('POST', '/order/api/Api.php');
         xhr.send(formData);
@@ -105,7 +126,24 @@ $additions = [
             if (xhr.response) {
                 const response = JSON.parse(xhr.response);
                 console.log(response);
+                if (response.OK) {
+                    const overlay = document.createElement('div');
+                    overlay.classList.add('overlay');
+                    const modal = document.createElement('div');
+                    modal.classList.add('modal-text');
+                    modal.textContent = response.OK;
+                    document.body.append(overlay, modal);
+                    setTimeout(() => {
+                        window.location.href = "/order/account.php?h=" + hash;
+                    }, 2000);
+                }
             }
         };
     });
+
+    function simpleHash (s) {
+        for(var i = 0, h = 0xdeadbeef; i < s.length; i++)
+            h = Math.imul(h ^ s.charCodeAt(i), 2654435761);
+        return (h ^ h >>> 16) >>> 0;
+    }
 </script>

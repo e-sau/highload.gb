@@ -2,19 +2,21 @@
 
 namespace App\api;
 
-require_once('../../vendor/autoload.php');
-$config = require('../config/config.php');
+error_reporting(E_ALL);
+ini_set('display_errors', '1');
 
-use App\models\User;
+require_once (__DIR__ . '/../../vendor/autoload.php');
+$config = require(__DIR__ . '/../config/config.php');
+
+use App\models\Order;
 use App\services\RabbitMQService;
-use PhpAmqpLib\Connection\AMQPStreamConnection;
-use PhpAmqpLib\Exception\AMQPProtocolChannelException;
-use PhpAmqpLib\Message\AMQPMessage;
 
 class Api
 {
+    private $exchange = 'order';
     private $request;
     private $config;
+    private $params;
 
     public function __construct($config)
     {
@@ -27,15 +29,28 @@ class Api
         $method = $this->getMethod();
 
         if (method_exists($this, $method)) {
-            $this->$method();
+            $this->$method($this->params);
         }
     }
 
     protected function getMethod()
     {
-        $event = $this->request['event'];
+        if (!empty($_POST['data'])) {
+            $post = json_decode($_POST['data'], true);
 
-        if ($event) {
+            if (!empty($post['method'])) {
+                $this->params = $post['orderId'];
+                return $post['method'];
+            }
+        }
+
+        return $this->getEvent();
+    }
+
+    protected function getEvent()
+    {
+        if (!empty($this->request['event'])) {
+            $event = $this->request['event'];
             $keys = array_map(function ($key) {
                 return ucfirst($key);
             }, explode('_', $event));
@@ -48,32 +63,41 @@ class Api
 
     protected function createNewOrderEvent()
     {
-        $exchange = 'order';
-        $routing_key = 'new_user';
+        $this->sendRabbitMQMessage('new_user');
+        $this->sendNewOrderMessageToUser();
+    }
 
+    protected function createNewCommentEvent()
+    {
+        $this->sendRabbitMQMessage('new_comment');
+        $this->sendNewCommentMessageToUser();
+    }
+
+    protected function sendRabbitMQMessage($routing_key)
+    {
         $rabbitMQService = new RabbitMQService($this->config);
 
         $data = json_encode($this->request, JSON_UNESCAPED_UNICODE);
 
-        $rabbitMQService->sendMessage($exchange, $routing_key, $data);
+        $rabbitMQService->sendMessage($this->exchange, $routing_key, $data);
+    }
 
+    protected function isOrderDelivered($order_id)
+    {
+        $order = (new Order())->selectById($order_id);
 
-//        $user_id = $this->createUser();
-//
-//        if ($user_id) {
-//            $order = new Order();
-//            $order->setUserId($user_id);
-//            $data = [
-//                $this->request['sandwich'],
-//                $this->request['additions'],
-//            ];
-//            $order->setData($data);
-//            $order->setAddress($this->request['address']);
-//
-//            return $order->create();
-//        }
-//
-//        return false;
+        echo json_encode(["is_delivered" => !empty($order['is_delivered'])]);
+
+    }
+
+    protected function sendNewOrderMessageToUser()
+    {
+        echo json_encode(['OK' => 'Спасибо за заказ!'], JSON_UNESCAPED_UNICODE);
+    }
+
+    protected function sendNewCommentMessageToUser()
+    {
+        echo json_encode(['OK' => 'Спасибо за отзыв!'], JSON_UNESCAPED_UNICODE);
     }
 }
 

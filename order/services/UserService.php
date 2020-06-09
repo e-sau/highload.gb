@@ -2,27 +2,25 @@
 
 namespace App\services;
 
-require_once('../../vendor/autoload.php');
-$config = require('../config/config.php');
+require_once (__DIR__ . '/../../vendor/autoload.php');
+$config = require(__DIR__ . '/../config/config.php');
 
 use App\models\User;
 
 class UserService extends BaseService
 {
-    private $exchange = 'order';
-    private $binding_key = 'new_user';
-    private $config;
-
-    public function __construct($config)
-    {
-        $this->config = $config;
-    }
+    protected $exchange = 'order';
+    protected $binding_key = 'new_user';
+    protected $config;
 
     protected function getCallback()
     {
         return function ($msg) {
             if (!empty($msg)) {
-                echo ' [x] ', $msg->delivery_info['routing_key'], "\n";
+                file_put_contents(
+                    'php://stdout',
+                    ' [x] ' . $msg->delivery_info['routing_key'] . "\n"
+                );
                 $data = json_decode($msg->body, true);
                 $user_id = $this->createUser($data);
 
@@ -41,9 +39,11 @@ class UserService extends BaseService
         $name = htmlspecialchars($data['name']);
         $phone = preg_match('/^\+7|8\d{10}$/', $data['phone'])
             ? $data['phone'] : '';
+        $hash = (int) $data['hash'];
 
         $user->setName($name);
         $user->setPhone($phone);
+        $user->setHash($hash);
 
         $user_id = $user->create();
 

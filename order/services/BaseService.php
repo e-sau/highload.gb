@@ -3,14 +3,17 @@
 
 namespace App\services;
 
+require_once (__DIR__ . '/../../vendor/autoload.php');
+
 
 abstract class BaseService
 {
-    private $config;
-    private $exchange;
-    private $binding_key;
-
     abstract protected function getCallback();
+
+    public function __construct($config)
+    {
+        $this->config = $config;
+    }
 
     public function run()
     {
@@ -22,7 +25,7 @@ abstract class BaseService
         list($queue_name, ,) = $channel->queue_declare(
             "",
             false,
-            false,
+            true,
             true,
             false
         );

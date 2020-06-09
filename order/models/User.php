@@ -2,7 +2,7 @@
 
 namespace App\models;
 
-require_once ('../../vendor/autoload.php');
+require_once (__DIR__ . '/../../vendor/autoload.php');
 
 use App\services\DB;
 
@@ -13,6 +13,7 @@ class User
     public $id;
     public $name;
     public $phone;
+    public $hash;
 
     public function setName($name)
     {
@@ -24,13 +25,19 @@ class User
         $this->phone = $phone;
     }
 
+    public function setHash($hash)
+    {
+        $this->hash = $hash;
+    }
+
     public function create()
     {
-        $sql = "INSERT INTO {$this->table} (name, phone) VALUES (:name, :phone)";
+        $sql = "INSERT INTO {$this->table} (name, phone, hash) VALUES (:name, :phone, :hash)";
         $sth = DB::getInstance()->getStatement($sql);
         $sth->execute([
             ":name" => $this->name,
-            ":phone" => $this->phone
+            ":phone" => $this->phone,
+            ":hash" => $this->hash
         ]);
 
         $this->id = DB::getInstance()->getLastInsertId();
@@ -45,6 +52,18 @@ class User
         $sth->bindParam(':id', $id, \PDO::PARAM_INT);
         $sth->execute();
 
-        return $sth->fetchAll(\PDO::FETCH_ASSOC);
+        return $sth->fetch(\PDO::FETCH_ASSOC);
+    }
+
+    public function selectByHash($hash)
+    {
+        $sql = "SELECT * FROM {$this->table} WHERE hash=:hash";
+
+        $sth = DB::getInstance()->getStatement($sql);
+        $sth->execute([
+            ":hash" => $hash
+        ]);
+
+        return $sth->fetch(\PDO::FETCH_ASSOC);
     }
 }
